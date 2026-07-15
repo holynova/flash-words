@@ -7,12 +7,14 @@ describe('project model', () => {
       text: '',
       durationSeconds: 80,
       intensity: -2,
+      speed: 9,
       aspectRatio: 'wrong',
       foreground: 'red',
     });
     expect(project.text).toBe('');
     expect(project.durationSeconds).toBe(12);
     expect(project.intensity).toBe(0.2);
+    expect(project.speed).toBe(2);
     expect(project.aspectRatio).toBe('1:1');
     expect(project.foreground).toBe(DEFAULT_PROJECT.foreground);
   });
@@ -32,5 +34,10 @@ describe('project model', () => {
     const project = normalizeProject({...DEFAULT_PROJECT, text: ''});
     expect(project.text).toBe('');
     expect(validateProject(project)).toBe('请输入至少一个字符');
+  });
+
+  it('preserves spaces while editing English text', () => {
+    expect(normalizeProject({...DEFAULT_PROJECT, text: 'Make words move'}).text).toBe('Make words move');
+    expect(normalizeProject({...DEFAULT_PROJECT, text: 'Make '}).text).toBe('Make ');
   });
 });

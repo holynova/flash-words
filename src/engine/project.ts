@@ -10,6 +10,7 @@ export const DEFAULT_PROJECT: ProjectSpec = {
   templateId: 'bold-cuts',
   seed: 731986,
   intensity: 0.72,
+  speed: 1,
   fontId: 'noto-sans',
   foreground: '#f5f1e8',
   background: '#0d0d0c',
@@ -32,7 +33,7 @@ export function dimensionsFor(aspectRatio: AspectRatio, quality: 'preview' | 'vi
 export function normalizeProject(input: unknown): ProjectSpec {
   if (!input || typeof input !== 'object') return structuredClone(DEFAULT_PROJECT);
   const source = input as Partial<ProjectSpec>;
-  const text = clampText(typeof source.text === 'string' ? source.text : DEFAULT_PROJECT.text).trim();
+  const text = clampText(typeof source.text === 'string' ? source.text : DEFAULT_PROJECT.text);
   const templateId = TEMPLATE_IDS.includes(source.templateId as TemplateId)
     ? (source.templateId as TemplateId)
     : DEFAULT_PROJECT.templateId;
@@ -50,6 +51,7 @@ export function normalizeProject(input: unknown): ProjectSpec {
     templateId,
     seed: Number.isFinite(source.seed) ? Math.max(0, Math.floor(source.seed!)) : DEFAULT_PROJECT.seed,
     intensity: Math.min(1, Math.max(0.2, Number(source.intensity) || DEFAULT_PROJECT.intensity)),
+    speed: Math.min(2, Math.max(0.5, Number(source.speed) || DEFAULT_PROJECT.speed)),
     fontId,
     foreground: COLOR_PATTERN.test(source.foreground ?? '') ? source.foreground! : DEFAULT_PROJECT.foreground,
     background: COLOR_PATTERN.test(source.background ?? '') ? source.background! : DEFAULT_PROJECT.background,

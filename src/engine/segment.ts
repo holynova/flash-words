@@ -36,6 +36,18 @@ export function visibleCharacterCount(text: string): number {
 
 export function clampText(text: string, max = 60): string {
   const items = graphemes(text);
-  if (items.length <= max) return text;
-  return items.slice(0, max).join('');
+  let visibleCount = 0;
+  let whitespaceCount = 0;
+  const result: string[] = [];
+  for (const item of items) {
+    if (item.trim()) {
+      visibleCount += 1;
+    } else {
+      whitespaceCount += 1;
+      if (whitespaceCount > max * 4) continue;
+    }
+    if (visibleCount > max) break;
+    result.push(item);
+  }
+  return result.join('');
 }

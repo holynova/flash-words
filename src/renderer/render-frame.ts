@@ -1,8 +1,8 @@
-import {easeInOutQuart, easeOutQuint, pulse} from '../engine/easing';
+import {easeInOutQuart, easeOutQuint, pulse, tempoProgress} from '../engine/easing';
 import {randomFor} from '../engine/random';
 import {graphemes} from '../engine/segment';
 import {createTimeline, sceneAtFrame, sceneProgress} from '../engine/timeline';
-import type {ProjectSpec, TimelineScene} from '../engine/types';
+import type {ProjectSpec, TemplateId, TimelineScene} from '../engine/types';
 import {FONT_STACKS} from './fonts';
 
 interface FrameContext {
@@ -330,6 +330,85 @@ function renderScatterAssemble(frame: FrameContext) {
   });
 }
 
+function renderWaveFlow(frame: FrameContext) {
+  const {scene, progress, width, height, project} = frame;
+  const chars = graphemes(scene.text).filter((item) => item.trim());
+  const count = Math.max(1, chars.length);
+  const cellWidth = Math.min(width * 0.18, width * 0.86 / count);
+  const amplitude = height * (0.07 + project.intensity * 0.09);
+  chars.forEach((char, index) => {
+    const phase = progress * Math.PI * 4 - index * 0.72;
+    const enter = easeOutQuint(Math.max(0, Math.min(1, progress * 2.4 - index * 0.035)));
+    drawCentered(frame, char, {
+      x: width / 2 + (index - (count - 1) / 2) * cellWidth,
+      y: height / 2 + Math.sin(phase) * amplitude,
+      maxWidth: cellWidth * 0.88,
+      maxHeight: height * 0.28,
+      scale: 0.55 + enter * 0.45,
+      rotation: Math.cos(phase) * 0.08 * project.intensity,
+      alpha: 0.2 + enter * 0.8,
+    });
+  });
+  drawRegistration(frame, 'FW / wave flow');
+}
+
+function renderTypewriter(frame: FrameContext) {
+  const {ctx, scene, progress, width, height, foreground, project} = frame;
+  const chars = graphemes(scene.text);
+  const forwardProgress = progress < 0.78 ? progress / 0.78 : 1 - (progress - 0.78) / 0.22;
+  const visible = Math.max(0, Math.min(chars.length, Math.ceil(forwardProgress * chars.length)));
+  const typed = chars.slice(0, visible).join('');
+  const cursorVisible = Math.floor(progress * 12) % 2 === 0;
+  drawCentered(frame, `${typed}${cursorVisible ? '▌' : ' '}`, {
+    maxWidth: width * 0.84,
+    maxHeight: height * 0.4,
+  });
+  ctx.save();
+  ctx.fillStyle = foreground;
+  ctx.globalAlpha = 0.35;
+  ctx.fillRect(width * 0.08, height * 0.73, width * 0.84 * forwardProgress, Math.max(2, height * 0.006));
+  ctx.font = `700 ${Math.max(10, width * 0.018)}px ${FONT_STACKS[project.fontId]}`;
+  ctx.textAlign = 'left';
+  ctx.fillText(`${String(visible).padStart(2, '0')} / ${String(chars.length).padStart(2, '0')}`, width * 0.08, height * 0.79);
+  ctx.restore();
+}
+
+function renderShutterReveal(frame: FrameContext) {
+  const {ctx, scene, progress, width, height, project} = frame;
+  const bands = 8;
+  const reveal = easeOutQuint(Math.min(1, progress * 1.8));
+  for (let index = 0; index < bands; index += 1) {
+    const bandHeight = height / bands + 1;
+    const top = index * height / bands;
+    const direction = index % 2 === 0 ? -1 : 1;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, top, width, bandHeight);
+    ctx.clip();
+    drawCentered(frame, scene.text, {
+      x: width / 2 + direction * width * (1 - reveal),
+      maxWidth: width * (0.86 + project.intensity * 0.16),
+      maxHeight: height * 0.58,
+    });
+    ctx.restore();
+  }
+  drawRegistration(frame, 'FW / shutter reveal');
+}
+
+const TEMPLATE_RENDERERS: Record<TemplateId, (frame: FrameContext) => void> = {
+  'bold-cuts': renderBoldCuts,
+  'fly-grid': renderFlyGrid,
+  'elastic-type': renderElasticType,
+  'tunnel-zoom': renderTunnelZoom,
+  'flash-invert': renderFlashInvert,
+  'tile-storm': renderTileStorm,
+  'glitch-slice': renderGlitchSlice,
+  'scatter-assemble': renderScatterAssemble,
+  'wave-flow': renderWaveFlow,
+  typewriter: renderTypewriter,
+  'shutter-reveal': renderShutterReveal,
+};
+
 export function renderFrame(
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   project: ProjectSpec,
@@ -340,7 +419,8 @@ export function renderFrame(
   const timeline = createTimeline(project);
   const frame = ((Math.floor(frameNumber) % timeline.totalFrames) + timeline.totalFrames) % timeline.totalFrames;
   const scene = sceneAtFrame(timeline, frame);
-  const progress = sceneProgress(scene, frame);
+  const linearProgress = sceneProgress(scene, frame);
+  const progress = tempoProgress(linearProgress, project.speed);
   const frameContext: FrameContext = {
     ctx,
     project,
@@ -360,16 +440,6 @@ export function renderFrame(
   ctx.fillStyle = project.background;
   ctx.fillRect(0, 0, width, height);
 
-  switch (project.templateId) {
-    case 'fly-grid': renderFlyGrid(frameContext); break;
-    case 'elastic-type': renderElasticType(frameContext); break;
-    case 'tunnel-zoom': renderTunnelZoom(frameContext); break;
-    case 'flash-invert': renderFlashInvert(frameContext); break;
-    case 'tile-storm': renderTileStorm(frameContext); break;
-    case 'glitch-slice': renderGlitchSlice(frameContext); break;
-    case 'scatter-assemble': renderScatterAssemble(frameContext); break;
-    case 'bold-cuts':
-    default: renderBoldCuts(frameContext);
-  }
+  TEMPLATE_RENDERERS[project.templateId](frameContext);
   ctx.restore();
 }

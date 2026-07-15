@@ -4,10 +4,10 @@ Flash Words 是一个完全在浏览器本地运行的动态文字生成器。�
 
 ## 功能
 
-- 8 套 Kinetic Typography 模板
+- 11 套 Kinetic Typography 模板，包含飞入、推进、闪烁、平铺、波浪、打字与快门等结构
 - 中文、英文、数字、标点和 Emoji 分段
 - 1:1 与 9:16 画布
-- 4 至 12 秒时长和可调动效强度
+- 4 至 12 秒时长、0.5× 至 2× 速度和可调动效强度
 - 固定 seed 的可复现随机结果
 - 模板、配色和排版锁定
 - MP4 1080p/30fps，无法使用 H.264 时自动尝试 WebM
@@ -21,7 +21,7 @@ Flash Words 是一个完全在浏览器本地运行的动态文字生成器。�
 
 ```bash
 npm install
-npx playwright install chromium webkit
+npx playwright install chromium webkit firefox
 npm run dev
 ```
 
@@ -42,7 +42,7 @@ npm run test:e2e
 npm run build
 ```
 
-端到端测试会实际生成 GIF 和视频文件，并在 Chromium 与 WebKit 中验证编辑器、导出、取消、本地项目往返、响应式布局和无障碍基线。
+端到端测试会实际生成 GIF 和视频文件，并在 Chromium、WebKit 与 Firefox 中验证编辑器、导出、取消、本地项目往返、响应式布局和无障碍基线。
 
 ## 架构
 

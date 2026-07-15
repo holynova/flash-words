@@ -1,5 +1,6 @@
 import {readFile, stat} from 'node:fs/promises';
 import {expect, test} from '@playwright/test';
+import {ALL_FORMATS, BufferSource, Input} from 'mediabunny';
 
 test.beforeEach(async ({page}, testInfo) => {
   test.skip(testInfo.project.name.includes('mobile'), 'High-resolution export is validated on desktop engines only');
@@ -22,6 +23,7 @@ test('exports a valid animated GIF through the worker', async ({page}, testInfo)
 });
 
 test('exports a playable video container', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name.includes('firefox'), 'Firefox support target is editor and GIF export');
   test.setTimeout(180_000);
   const downloadPromise = page.waitForEvent('download', {timeout: 170_000});
   await page.getByRole('button', {name: '导出视频'}).click();
@@ -60,4 +62,38 @@ test('completes five consecutive video exports and releases the UI each time', a
     expect(Date.now() - startedAt).toBeLessThan(30_000);
     await expect(page.getByRole('button', {name: '导出视频'})).toBeEnabled();
   }
+});
+
+test('exports both formats from a 9:16 project', async ({page}, testInfo) => {
+  test.skip(testInfo.project.name !== 'chromium-desktop', 'Portrait export matrix runs once');
+  test.setTimeout(180_000);
+  await page.getByRole('button', {name: '9:16'}).click();
+
+  const gifDownloadPromise = page.waitForEvent('download', {timeout: 110_000});
+  await page.getByRole('button', {name: '导出 GIF'}).click();
+  const gifDownload = await gifDownloadPromise;
+  const gifPath = testInfo.outputPath('flash-words-portrait.gif');
+  await gifDownload.saveAs(gifPath);
+  const gifBytes = await readFile(gifPath);
+  expect(gifBytes.readUInt16LE(6)).toBe(405);
+  expect(gifBytes.readUInt16LE(8)).toBe(720);
+
+  const videoDownloadPromise = page.waitForEvent('download', {timeout: 170_000});
+  await page.getByRole('button', {name: '导出视频'}).click();
+  const videoDownload = await videoDownloadPromise;
+  const videoExtension = videoDownload.suggestedFilename().split('.').at(-1);
+  expect(['mp4', 'webm']).toContain(videoExtension);
+  const videoPath = testInfo.outputPath(`flash-words-portrait.${videoExtension}`);
+  await videoDownload.saveAs(videoPath);
+  const videoBytes = await readFile(videoPath);
+  const input = new Input({
+    formats: ALL_FORMATS,
+    source: new BufferSource(Uint8Array.from(videoBytes).buffer),
+  });
+  const videoTrack = await input.getPrimaryVideoTrack();
+  expect(videoTrack).not.toBeNull();
+  expect(await videoTrack!.getCodedWidth()).toBe(1080);
+  expect(await videoTrack!.getCodedHeight()).toBe(1920);
+  expect(await input.computeDuration()).toBeCloseTo(4, 1);
+  input.dispose();
 });

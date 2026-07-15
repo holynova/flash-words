@@ -15,4 +15,18 @@ describe('text segmentation', () => {
   it('clamps without splitting a grapheme cluster', () => {
     expect(clampText('甲乙👩‍🎨丙', 3)).toBe('甲乙👩‍🎨');
   });
+
+  it('clamps by visible graphemes without counting whitespace', () => {
+    const value = `${'字 '.repeat(60)}👨‍👩‍👧‍👦`;
+    const clamped = clampText(value);
+    expect(visibleCharacterCount(clamped)).toBe(60);
+    expect(clamped).not.toContain('👨‍👩‍👧‍👦');
+    expect(clamped).toContain(' ');
+  });
+
+  it('caps excess whitespace without losing later visible text', () => {
+    const clamped = clampText(`${' '.repeat(1_000)}保留我`);
+    expect(clamped.length).toBeLessThanOrEqual(243);
+    expect(clamped).toContain('保留我');
+  });
 });

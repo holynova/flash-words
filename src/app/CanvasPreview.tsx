@@ -18,9 +18,6 @@ export function CanvasPreview({project, playing, restartToken, onFrameChange}: C
   const playingRef = useRef(playing);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => { projectRef.current = project; }, [project]);
-  useEffect(() => { playingRef.current = playing; }, [playing]);
-
   const draw = useCallback((frame: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -29,6 +26,12 @@ export function CanvasPreview({project, playing, restartToken, onFrameChange}: C
     renderFrame(ctx, projectRef.current, frame);
     onFrameChange(frame);
   }, [onFrameChange]);
+
+  useEffect(() => {
+    projectRef.current = project;
+    draw(frameRef.current);
+  }, [draw, project]);
+  useEffect(() => { playingRef.current = playing; }, [playing]);
 
   useEffect(() => {
     const {width, height} = dimensionsFor(project.aspectRatio, 'preview');

@@ -7,6 +7,9 @@ export const TEMPLATE_IDS = [
   'tile-storm',
   'glitch-slice',
   'scatter-assemble',
+  'wave-flow',
+  'typewriter',
+  'shutter-reveal',
 ] as const;
 
 export type TemplateId = (typeof TEMPLATE_IDS)[number];
@@ -28,6 +31,7 @@ export interface ProjectSpec {
   templateId: TemplateId;
   seed: number;
   intensity: number;
+  speed: number;
   fontId: FontId;
   foreground: string;
   background: string;

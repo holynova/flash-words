@@ -44,10 +44,10 @@ test('shows an inline error for an empty draft', async ({page}) => {
   await expect(page.getByRole('button', {name: '导出视频'})).toBeDisabled();
 });
 
-test('renders all eight templates at both aspect ratios', async ({page}) => {
+test('renders all eleven templates at both aspect ratios', async ({page}) => {
   test.setTimeout(60_000);
   await page.goto('/');
-  const templates = ['黑白跳切', '飞入网格', '弹性文字', '无限推进', '闪烁反相', '密集平铺', '故障切片', '散落聚合'];
+  const templates = ['黑白跳切', '飞入网格', '弹性文字', '无限推进', '闪烁反相', '密集平铺', '故障切片', '散落聚合', '波浪字流', '打字显现', '快门揭示'];
   for (const ratio of ['1:1', '9:16']) {
     await page.getByRole('button', {name: ratio}).click();
     for (const name of templates) {
@@ -86,6 +86,26 @@ test('keeps locked template and palette while randomizing the seed', async ({pag
   await expect(page.locator('.stage-seed span')).not.toHaveText(beforeSeed ?? '');
 });
 
+test('keeps the seed and layout when layout is locked', async ({page}) => {
+  await page.goto('/');
+  await page.getByRole('button', {name: '锁定当前排版'}).click();
+  const beforeSeed = await page.locator('.stage-seed span').textContent();
+  await page.getByRole('button', {name: /换一版/}).click();
+  await expect(page.locator('.stage-seed span')).toHaveText(beforeSeed ?? '');
+});
+
+test('redraws edits immediately while preview is paused', async ({page}) => {
+  await page.goto('/');
+  await page.getByRole('button', {name: '暂停预览'}).click();
+  const before = await page.locator('canvas').evaluate((canvas: HTMLCanvasElement) =>
+    Array.from(canvas.getContext('2d')!.getImageData(0, 0, 1, 1).data),
+  );
+  await page.locator('input[type="color"]').nth(1).fill('#123456');
+  await expect.poll(() => page.locator('canvas').evaluate((canvas: HTMLCanvasElement) =>
+    Array.from(canvas.getContext('2d')!.getImageData(0, 0, 1, 1).data),
+  )).not.toEqual(before);
+});
+
 test('round-trips a project JSON file', async ({page}) => {
   await page.goto('/');
   await page.getByLabel('动画文字').fill('可重复编辑的文字');
@@ -106,6 +126,7 @@ test('round-trips a project JSON file', async ({page}) => {
       templateId: 'tile-storm',
       seed: 8128,
       intensity: 0.65,
+      speed: 1.3,
       fontId: 'noto-serif',
       foreground: '#f5f1e8',
       background: '#0d0d0c',
@@ -114,6 +135,7 @@ test('round-trips a project JSON file', async ({page}) => {
   });
   await expect(page.getByLabel('动画文字')).toHaveValue('重新载入成功');
   await expect(page.getByRole('heading', {name: '密集平铺'})).toBeVisible();
+  await expect(page.getByText('1.3×')).toBeVisible();
   await expect(page.getByText('项目文件已载入')).toBeVisible();
 });
 
@@ -130,6 +152,10 @@ test('does not autoplay when reduced motion is requested', async ({browser}) => 
   const context = await browser.newContext({reducedMotion: 'reduce'});
   const page = await context.newPage();
   await page.goto('http://127.0.0.1:4188/');
+  await expect(page.getByRole('button', {name: '播放预览'})).toBeVisible();
+  await page.getByRole('button', {name: '波浪字流'}).click();
+  await expect(page.getByRole('button', {name: '播放预览'})).toBeVisible();
+  await page.getByRole('button', {name: /换一版/}).click();
   await expect(page.getByRole('button', {name: '播放预览'})).toBeVisible();
   await context.close();
 });

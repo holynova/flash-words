@@ -55,7 +55,7 @@ export function App() {
   const restart = useCallback(() => {
     setRestartToken((value) => value + 1);
     setCurrentFrame(0);
-    setPlaying(true);
+    setPlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   }, []);
 
   const setTemplate = (templateId: ProjectSpec['templateId']) => {
@@ -159,7 +159,6 @@ export function App() {
               id="motion-text"
               value={project.text}
               rows={4}
-              maxLength={120}
               onChange={(event) => updateProject({text: clampText(event.target.value)})}
               aria-describedby="text-count text-error"
             />
@@ -233,6 +232,10 @@ export function App() {
             <label className="range-field">
               <span><span>动效强度</span><output>{Math.round(project.intensity * 100)}%</output></span>
               <input type="range" min="0.2" max="1" step="0.05" value={project.intensity} onChange={(event) => updateProject({intensity: Number(event.target.value)})} />
+            </label>
+            <label className="range-field">
+              <span><span>速度</span><output>{project.speed.toFixed(1)}×</output></span>
+              <input type="range" min="0.5" max="2" step="0.1" value={project.speed} onChange={(event) => updateProject({speed: Number(event.target.value)})} />
             </label>
 
             <label className="select-field">

@@ -13,3 +13,7 @@ export function easeInOutQuart(value: number) {
 export function pulse(value: number) {
   return Math.sin(clamp01(value) * Math.PI);
 }
+
+export function tempoProgress(value: number, speed: number) {
+  return Math.pow(clamp01(value), 1 / Math.max(0.01, speed));
+}

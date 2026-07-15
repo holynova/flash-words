@@ -26,7 +26,11 @@ export function useProject() {
   const [project, setProject] = useState<ProjectSpec>(loadInitialProject);
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
+    } catch {
+      // Editing and export still work when storage is blocked or full.
+    }
   }, [project]);
 
   const updateProject = useCallback((patch: Partial<ProjectSpec>) => {
@@ -42,7 +46,12 @@ export function useProject() {
       const palette = current.locks.palette
         ? {foreground: current.foreground, background: current.background}
         : PALETTES[(seed >>> 4) % PALETTES.length];
-      return normalizeProject({...current, ...palette, templateId, seed});
+      return normalizeProject({
+        ...current,
+        ...palette,
+        templateId,
+        seed: current.locks.layout ? current.seed : seed,
+      });
     });
   }, []);
 
