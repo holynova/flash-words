@@ -303,6 +303,84 @@ p { text-wrap: pretty; }
   line-height: 1.45;
 }
 
+.recipe-composer {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: var(--radius-lg);
+  background: var(--paper-high);
+  box-shadow: inset 0 0 0 1px var(--divider), 3px 3px 0 oklch(16% 0.012 95 / 10%);
+}
+
+.recipe-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.recipe-heading > div { display: grid; gap: 2px; }
+.recipe-heading span { color: var(--muted); font-family: var(--font-poster); font-size: 8px; letter-spacing: 0.08em; }
+.recipe-heading h3 { font-size: 13px; font-weight: 850; }
+
+.director-switch {
+  min-height: 40px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--paper-deep);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.director-switch.is-active { background: var(--ink); color: var(--signal); }
+
+.recipe-slots {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.recipe-slot { min-width: 0; display: grid; gap: 4px; }
+.recipe-slot:last-child { grid-column: 1 / -1; }
+
+.recipe-slot > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--ink-soft);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.recipe-slot small {
+  min-width: 26px;
+  color: var(--muted);
+  font-family: var(--font-poster);
+  font-size: 7px;
+  letter-spacing: 0.05em;
+}
+
+.recipe-slot select {
+  width: 100%;
+  min-height: 40px;
+  border: 0;
+  border-radius: var(--radius-md);
+  padding: 0 8px;
+  background: var(--paper-deep);
+  box-shadow: inset 0 0 0 1px var(--divider);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.recipe-note { margin-top: 9px; color: var(--muted); font-size: 9px; line-height: 1.55; }
+
 .compact-controls { display: grid; gap: 14px; }
 .compact-controls .section-heading { margin-bottom: 0; }
 
@@ -394,6 +472,7 @@ input[type="range"] {
 
 .stage-header { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .stage-header h2 { margin-top: 3px; font-size: 24px; font-weight: 900; letter-spacing: -0.012em; }
+.stage-recipe { margin-top: 3px; color: var(--muted); font-size: 10px; font-weight: 700; }
 .eyebrow { color: var(--muted); font-family: var(--font-poster); font-size: 10px; letter-spacing: 0.08em; }
 .stage-seed { color: var(--muted); font-size: 10px; font-weight: 750; }
 .stage-seed span { color: var(--ink); font-family: var(--font-poster); }
@@ -548,6 +627,7 @@ input[type="range"] {
   .icon-lock:hover:not(.is-locked), .transport button:hover:not(.transport-primary) { background: oklch(16% 0.012 95 / 12%); }
   .export-button:hover:not(.primary), .project-files button:hover { background: oklch(100% 0 0 / 13%); }
   .footer a:hover { color: var(--ink); }
+  .director-switch:hover:not(.is-active), .recipe-slot select:hover { background: oklch(92% 0.02 96); }
 }
 
 @media (max-width: 1100px) {

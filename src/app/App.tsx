@@ -17,11 +17,13 @@ import {
 } from 'lucide-react';
 import {clampText, visibleCharacterCount} from '../engine/segment';
 import {normalizeProject, validateProject} from '../engine/project';
-import type {ExportProgress, ProjectLocks, ProjectSpec} from '../engine/types';
+import type {ExportProgress, MotionRecipe, ProjectLocks, ProjectSpec} from '../engine/types';
 import {downloadBlob, safeFilename} from '../exporters/download';
 import {exportGif} from '../exporters/gif';
 import {exportVideo} from '../exporters/video';
 import {CanvasPreview} from './CanvasPreview';
+import {recipeSummary} from './recipe-meta';
+import {RecipeComposer} from './RecipeComposer';
 import {TEMPLATES} from './template-meta';
 import {useProject} from './use-project';
 
@@ -59,7 +61,20 @@ export function App() {
   }, []);
 
   const setTemplate = (templateId: ProjectSpec['templateId']) => {
-    updateProject({templateId});
+    updateProject({templateId, autoDirector: true});
+    restart();
+  };
+
+  const toggleAutoDirector = () => {
+    updateProject({autoDirector: !project.autoDirector});
+    restart();
+  };
+
+  const setRecipeEffect = (key: keyof MotionRecipe, value: string) => {
+    updateProject({
+      autoDirector: false,
+      recipe: {...project.recipe, [key]: value} as MotionRecipe,
+    });
     restart();
   };
 
@@ -171,12 +186,12 @@ export function App() {
           <section className="rail-section">
             <div className="section-heading inline-heading">
               <span className="section-index">02</span>
-              <h2>选择动态结构</h2>
+              <h2>选择组合预设</h2>
               <button
                 className={`icon-lock ${project.locks.template ? 'is-locked' : ''}`}
                 type="button"
                 onClick={() => toggleLock('template')}
-                aria-label={project.locks.template ? '解除模板锁定' : '锁定当前模板'}
+                aria-label={project.locks.template ? '解除配方锁定' : '锁定当前配方'}
               >
                 <Lock size={14} aria-hidden="true" />
               </button>
@@ -197,7 +212,13 @@ export function App() {
                 </button>
               ))}
             </div>
-            {activeTemplate.flashes && (
+            <RecipeComposer
+              recipe={project.recipe}
+              autoDirector={project.autoDirector}
+              onToggleAuto={toggleAutoDirector}
+              onChange={setRecipeEffect}
+            />
+            {project.recipe.emphasis === 'flash' && (
               <p className="motion-warning">此模板包含快速闪烁，光敏用户请谨慎使用。</p>
             )}
           </section>
@@ -270,7 +291,8 @@ export function App() {
           <div className="stage-header">
             <div>
               <span className="eyebrow">LIVE COMPOSITION</span>
-              <h2>{activeTemplate.name}</h2>
+              <h2>{project.autoDirector ? activeTemplate.name : '自定义组合'}</h2>
+              <p className="stage-recipe">{recipeSummary(project.recipe)}</p>
             </div>
             <div className="stage-seed">SEED <span>{String(project.seed).padStart(8, '0').slice(-8)}</span></div>
           </div>

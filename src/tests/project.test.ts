@@ -40,4 +40,17 @@ describe('project model', () => {
     expect(normalizeProject({...DEFAULT_PROJECT, text: 'Make words move'}).text).toBe('Make words move');
     expect(normalizeProject({...DEFAULT_PROJECT, text: 'Make '}).text).toBe('Make ');
   });
+
+  it('migrates old projects to the composable recipe model', () => {
+    const project = normalizeProject({...DEFAULT_PROJECT, version: 1, recipe: undefined});
+    expect(project.version).toBe(2);
+    expect(project.autoDirector).toBe(true);
+    expect(project.recipe).toMatchObject({
+      entrance: expect.any(String),
+      motion: expect.any(String),
+      emphasis: expect.any(String),
+      exit: expect.any(String),
+      background: expect.any(String),
+    });
+  });
 });

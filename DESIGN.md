@@ -25,6 +25,7 @@ Flash Words is a high-contrast editorial motion desk. It borrows the urgency of 
 - Buttons use an 8px radius, at least 40px height, ink/signal inversion, and 0.96 active scale.
 - Inputs are flat paper fields separated by strong layout dividers rather than floating cards.
 - Template selectors are small typographic posters with a visible selected outline.
+- The composition recipe is a compact five-slot control, not a professional timeline; automatic direction remains the default.
 - Status rows keep one fixed type size to prevent layout jitter.
 
 ## 5. Layout
@@ -32,6 +33,7 @@ Flash Words is a high-contrast editorial motion desk. It borrows the urgency of 
 - Desktop uses 296px control rail, flexible canvas stage, 272px export rail.
 - Spacing scale: 4, 8, 12, 16, 24, 32px.
 - The central canvas receives the most area and highest contrast.
+- Recipe slots stay inside the preset section so composition reads from preset to detail without opening another surface.
 
 ## 6. Depth
 

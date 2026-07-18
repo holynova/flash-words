@@ -1,5 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {DEFAULT_PROJECT, normalizeProject} from '../engine/project';
+import {directRecipe, randomRecipe} from '../engine/recipes';
 import {nextSeed} from '../engine/random';
 import {TEMPLATE_IDS, type ProjectSpec} from '../engine/types';
 
@@ -34,7 +35,15 @@ export function useProject() {
   }, [project]);
 
   const updateProject = useCallback((patch: Partial<ProjectSpec>) => {
-    setProject((current) => normalizeProject({...current, ...patch}));
+    setProject((current) => {
+      const merged = normalizeProject({...current, ...patch});
+      const shouldDirect = merged.autoDirector
+        && !patch.recipe
+        && (patch.text !== undefined || patch.templateId !== undefined || patch.autoDirector === true);
+      return shouldDirect
+        ? normalizeProject({...merged, recipe: directRecipe(merged.templateId, merged.text, merged.seed)})
+        : merged;
+    });
   }, []);
 
   const randomize = useCallback(() => {
@@ -46,10 +55,16 @@ export function useProject() {
       const palette = current.locks.palette
         ? {foreground: current.foreground, background: current.background}
         : PALETTES[(seed >>> 4) % PALETTES.length];
+      const recipe = current.locks.template
+        ? current.recipe
+        : current.autoDirector
+          ? directRecipe(templateId, current.text, seed)
+          : randomRecipe(seed);
       return normalizeProject({
         ...current,
         ...palette,
         templateId,
+        recipe,
         seed: current.locks.layout ? current.seed : seed,
       });
     });

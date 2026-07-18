@@ -1,8 +1,9 @@
 import {clampText, visibleCharacterCount} from './segment';
+import {directRecipe, normalizeRecipe} from './recipes';
 import {TEMPLATE_IDS, type AspectRatio, type ProjectSpec, type TemplateId} from './types';
 
 export const DEFAULT_PROJECT: ProjectSpec = {
-  version: 1,
+  version: 2,
   text: '艺术是我的朋友',
   aspectRatio: '1:1',
   durationSeconds: 8,
@@ -14,6 +15,8 @@ export const DEFAULT_PROJECT: ProjectSpec = {
   fontId: 'noto-sans',
   foreground: '#f5f1e8',
   background: '#0d0d0c',
+  autoDirector: true,
+  recipe: directRecipe('bold-cuts', '艺术是我的朋友', 731986),
   locks: {template: false, palette: true, layout: false},
 };
 
@@ -43,7 +46,7 @@ export function normalizeProject(input: unknown): ProjectSpec {
     : DEFAULT_PROJECT.fontId;
 
   return {
-    version: 1,
+    version: 2,
     text,
     aspectRatio,
     durationSeconds: Math.min(12, Math.max(4, Number(source.durationSeconds) || 8)),
@@ -55,6 +58,10 @@ export function normalizeProject(input: unknown): ProjectSpec {
     fontId,
     foreground: COLOR_PATTERN.test(source.foreground ?? '') ? source.foreground! : DEFAULT_PROJECT.foreground,
     background: COLOR_PATTERN.test(source.background ?? '') ? source.background! : DEFAULT_PROJECT.background,
+    autoDirector: source.autoDirector !== false,
+    recipe: source.recipe
+      ? normalizeRecipe(source.recipe, templateId)
+      : directRecipe(templateId, text, Number.isFinite(source.seed) ? Number(source.seed) : DEFAULT_PROJECT.seed),
     locks: {
       template: Boolean(source.locks?.template),
       palette: Boolean(source.locks?.palette),

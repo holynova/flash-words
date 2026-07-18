@@ -76,14 +76,42 @@ test('renders all eleven templates at both aspect ratios', async ({page}) => {
 test('keeps locked template and palette while randomizing the seed', async ({page}) => {
   await page.goto('/');
   await page.getByRole('button', {name: '故障切片'}).click();
-  await page.getByRole('button', {name: '锁定当前模板'}).click();
+  await page.getByRole('button', {name: '锁定当前配方'}).click();
   const colors = page.locator('input[type="color"]');
   const beforeColors = [await colors.nth(0).inputValue(), await colors.nth(1).inputValue()];
+  const recipeSelects = page.locator('.recipe-slot select');
+  const beforeRecipe = await recipeSelects.evaluateAll((selects) => selects.map((select) => (select as HTMLSelectElement).value));
   const beforeSeed = await page.locator('.stage-seed span').textContent();
   await page.getByRole('button', {name: /换一版/}).click();
   await expect(page.getByRole('heading', {name: '故障切片'})).toBeVisible();
   expect([await colors.nth(0).inputValue(), await colors.nth(1).inputValue()]).toEqual(beforeColors);
+  expect(await recipeSelects.evaluateAll((selects) => selects.map((select) => (select as HTMLSelectElement).value))).toEqual(beforeRecipe);
   await expect(page.locator('.stage-seed span')).not.toHaveText(beforeSeed ?? '');
+});
+
+test('combines five effect slots and persists a manual recipe', async ({page}) => {
+  await page.goto('/');
+  await expect(page.getByRole('button', {name: '自动导演'})).toHaveAttribute('aria-pressed', 'true');
+  await page.getByLabel('进入效果').selectOption('typewriter');
+  await page.getByLabel('持续效果').selectOption('wave');
+  await page.getByLabel('强调效果').selectOption('glitch');
+  await page.getByLabel('退出效果').selectOption('shutter');
+  await page.getByLabel('背景效果').selectOption('tiles');
+  await expect(page.getByRole('heading', {name: '自定义组合'})).toBeVisible();
+  await expect(page.getByRole('button', {name: '手动编排'})).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByText('打字 · 波浪 · 故障 · 快门 · 平铺')).toBeVisible();
+  await page.reload();
+  await expect(page.getByLabel('进入效果')).toHaveValue('typewriter');
+  await expect(page.getByLabel('背景效果')).toHaveValue('tiles');
+});
+
+test('auto director adapts the recipe to text length and presets restore it', async ({page}) => {
+  await page.goto('/');
+  await page.getByLabel('动画文字').fill('这是一段需要自动导演重新安排节奏的长文字');
+  await expect(page.getByLabel('进入效果')).toHaveValue('typewriter');
+  await page.getByRole('button', {name: '波浪字流'}).click();
+  await expect(page.getByRole('button', {name: '自动导演'})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('heading', {name: '波浪字流'})).toBeVisible();
 });
 
 test('keeps the seed and layout when layout is locked', async ({page}) => {
