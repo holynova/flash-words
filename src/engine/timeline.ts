@@ -1,22 +1,34 @@
 import {graphemes, words} from './segment';
 import type {ProjectSpec, Timeline, TimelineScene} from './types';
 
-function sceneText(project: ProjectSpec): string[] {
-  const wordSegments = words(project.text);
-  const characterSegments = graphemes(project.text).filter((item) => item.trim());
-  if (wordSegments.length > 1 && wordSegments.length <= 10) return wordSegments;
-  if (characterSegments.length <= 10) return characterSegments;
+const CONTINUOUS_MOTIONS = new Set<ProjectSpec['recipe']['motion']>([
+  'marquee',
+  'marquee-lines',
+  'multiply',
+]);
 
-  const chunkSize = Math.ceil(characterSegments.length / 8);
-  const chunks: string[] = [];
-  for (let index = 0; index < characterSegments.length; index += chunkSize) {
-    chunks.push(characterSegments.slice(index, index + chunkSize).join(''));
-  }
-  return chunks;
+function sceneText(project: ProjectSpec): string[] {
+  const characterSegments = graphemes(project.text).filter((item) => item.trim());
+  if (project.segmentationMode === 'character') return characterSegments;
+  const wordSegments = words(project.text);
+  return wordSegments.length > 0 ? wordSegments : characterSegments;
 }
 
 export function createTimeline(project: ProjectSpec): Timeline {
   const totalFrames = Math.round(project.durationSeconds * project.fps);
+  if (CONTINUOUS_MOTIONS.has(project.recipe.motion)) {
+    return {
+      totalFrames,
+      scenes: [{
+        id: `continuous-${project.recipe.motion}`,
+        kind: 'climax',
+        text: project.text,
+        startFrame: 0,
+        endFrame: totalFrames,
+        emphasis: 1,
+      }],
+    };
+  }
   const tokens = sceneText(project);
   const mainFrames = Math.round(totalFrames * 0.72);
   const climaxFrames = Math.round(totalFrames * 0.18);

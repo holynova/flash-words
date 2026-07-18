@@ -43,7 +43,9 @@ describe('project model', () => {
 
   it('migrates old projects to the composable recipe model', () => {
     const project = normalizeProject({...DEFAULT_PROJECT, version: 1, recipe: undefined});
-    expect(project.version).toBe(2);
+    expect(project.version).toBe(4);
+    expect(project.segmentationMode).toBe('word');
+    expect(project.compositionMode).toBe('combined');
     expect(project.autoDirector).toBe(true);
     expect(project.recipe).toMatchObject({
       entrance: expect.any(String),
@@ -51,6 +53,31 @@ describe('project model', () => {
       emphasis: expect.any(String),
       exit: expect.any(String),
       background: expect.any(String),
+    });
+  });
+
+  it('persists character segmentation and normalizes unknown modes to words', () => {
+    expect(normalizeProject({...DEFAULT_PROJECT, segmentationMode: 'character'}).segmentationMode)
+      .toBe('character');
+    expect(normalizeProject({...DEFAULT_PROJECT, segmentationMode: 'unknown'}).segmentationMode)
+      .toBe('word');
+  });
+
+  it('persists single-effect mode and removes every secondary effect', () => {
+    const project = normalizeProject({
+      ...DEFAULT_PROJECT,
+      compositionMode: 'single',
+      templateId: 'wave-flow',
+      recipe: DEFAULT_PROJECT.recipe,
+    });
+    expect(project.compositionMode).toBe('single');
+    expect(project.autoDirector).toBe(false);
+    expect(project.recipe).toEqual({
+      entrance: 'none',
+      motion: 'wave',
+      emphasis: 'none',
+      exit: 'none',
+      background: 'none',
     });
   });
 });

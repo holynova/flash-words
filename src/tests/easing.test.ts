@@ -10,4 +10,9 @@ describe('tempo progress', () => {
     expect(tempoProgress(0.5, 2)).toBeGreaterThan(0.5);
     expect(tempoProgress(0.5, 0.5)).toBeLessThan(0.5);
   });
+
+  it('does not collapse a fast character entrance into one frame', () => {
+    const firstFrameOfFourteen = 1 / 14;
+    expect(tempoProgress(firstFrameOfFourteen, 1.8)).toBeLessThan(0.12);
+  });
 });

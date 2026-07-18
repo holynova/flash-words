@@ -273,6 +273,7 @@ p { text-wrap: pretty; }
   font-size: 10px;
   font-weight: 750;
 }
+.template-button:active:not(:disabled) { transform: none; }
 
 .template-button.is-active {
   background: var(--ink);
@@ -293,6 +294,9 @@ p { text-wrap: pretty; }
 .template-elastic-type .template-glyph { transform: scaleX(0.7) scaleY(1.12); }
 .template-tunnel-zoom .template-glyph { font-size: 31px; }
 .template-glitch-slice .template-glyph { text-shadow: 3px 0 var(--signal-dark); }
+.template-single-marquee .template-glyph { transform: scaleX(1.35); }
+.template-multi-marquee .template-glyph { letter-spacing: -0.12em; }
+.template-split-tiles .template-glyph { font-size: 28px; }
 
 .motion-warning {
   margin-top: 10px;
@@ -339,6 +343,31 @@ p { text-wrap: pretty; }
 
 .director-switch.is-active { background: var(--ink); color: var(--signal); }
 
+.recipe-mode-switch {
+  margin-top: 10px;
+  padding: 3px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  border-radius: var(--radius-md);
+  background: oklch(16% 0.012 95 / 8%);
+}
+
+.recipe-mode-switch button {
+  min-height: 38px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.recipe-mode-switch button.is-active {
+  background: var(--ink);
+  color: var(--paper);
+}
+
 .recipe-slots {
   margin-top: 10px;
   display: grid;
@@ -381,6 +410,37 @@ p { text-wrap: pretty; }
 
 .recipe-note { margin-top: 9px; color: var(--muted); font-size: 9px; line-height: 1.55; }
 
+.single-effect-summary {
+  margin-top: 10px;
+  padding: 12px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  border-radius: var(--radius-md);
+  background: var(--paper-deep);
+  box-shadow: inset 0 0 0 1px var(--divider);
+}
+
+.single-effect-summary span {
+  align-self: center;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.single-effect-summary strong {
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.single-effect-summary p {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.55;
+}
+
 .compact-controls { display: grid; gap: 14px; }
 .compact-controls .section-heading { margin-bottom: 0; }
 
@@ -406,6 +466,23 @@ p { text-wrap: pretty; }
 }
 
 .segmented button.is-active { background: var(--paper-high); box-shadow: 0 1px 3px oklch(16% 0.012 95 / 16%); }
+
+.segmentation-control { display: grid; gap: 8px; }
+
+.control-label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.control-label small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 650;
+}
 
 .range-field { display: grid; gap: 8px; font-size: 12px; font-weight: 750; }
 .range-field > span { display: flex; justify-content: space-between; }
@@ -628,7 +705,7 @@ input[type="range"] {
   .icon-lock:hover:not(.is-locked), .transport button:hover:not(.transport-primary) { background: oklch(16% 0.012 95 / 12%); }
   .export-button:hover:not(.primary), .project-files button:hover { background: oklch(100% 0 0 / 13%); }
   .footer a:hover { color: var(--ink); }
-  .director-switch:hover:not(.is-active), .recipe-slot select:hover { background: oklch(92% 0.02 96); }
+  .director-switch:hover:not(.is-active), .recipe-mode-switch button:hover:not(.is-active), .recipe-slot select:hover { background: oklch(92% 0.02 96); }
 }
 
 @media (max-width: 1100px) {

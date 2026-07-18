@@ -1,5 +1,5 @@
 import {compositionTiming, type CompositionTiming} from '../engine/composition';
-import {easeInOutQuart, easeOutQuint, tempoProgress} from '../engine/easing';
+import {clamp01, easeInOutQuart, tempoProgress} from '../engine/easing';
 import {randomFor} from '../engine/random';
 import {graphemes} from '../engine/segment';
 import {createTimeline, sceneAtFrame, sceneProgress} from '../engine/timeline';
@@ -84,15 +84,39 @@ function drawCentered(frame: FrameContext, text: string, options: DrawOptions = 
   ctx.restore();
 }
 
-function resolvePalette(project: ProjectSpec, timing: CompositionTiming) {
+function mixHexColor(from: string, to: string, amount: number) {
+  const mix = Math.min(1, Math.max(0, amount));
+  const channels = [1, 3, 5].map((offset) => {
+    const start = Number.parseInt(from.slice(offset, offset + 2), 16);
+    const end = Number.parseInt(to.slice(offset, offset + 2), 16);
+    return Math.round(start + (end - start) * mix).toString(16).padStart(2, '0');
+  });
+  return `#${channels.join('')}`;
+}
+
+export function resolvePalette(project: ProjectSpec, timing: CompositionTiming) {
   const {emphasis} = project.recipe;
-  let inverted = emphasis === 'invert' && timing.emphasis > 0.18;
-  if (emphasis === 'flash' && timing.emphasis > 0) {
-    inverted = Math.floor(timing.emphasisPhase * 10) % 2 === 1;
+  if (emphasis === 'flash') {
+    const exposure = timing.emphasis ** 2 * (0.06 + project.intensity * 0.12);
+    return {
+      foreground: mixHexColor(project.foreground, project.background, exposure * 0.28),
+      background: mixHexColor(project.background, project.foreground, exposure),
+    };
   }
-  return inverted
-    ? {foreground: project.background, background: project.foreground}
-    : {foreground: project.foreground, background: project.background};
+  if (emphasis === 'invert') {
+    const envelope = timing.emphasis ** 1.6;
+    const mutedBackground = mixHexColor(
+      project.background,
+      project.foreground,
+      0.34 + project.intensity * 0.08,
+    );
+    const mutedForeground = mixHexColor(project.background, project.foreground, 0.04);
+    return {
+      foreground: mixHexColor(project.foreground, mutedForeground, envelope),
+      background: mixHexColor(project.background, mutedBackground, envelope),
+    };
+  }
+  return {foreground: project.foreground, background: project.background};
 }
 
 function renderBackground(frame: FrameContext) {
@@ -169,9 +193,10 @@ function renderBackground(frame: FrameContext) {
 
 function resolveTextStyle(frame: FrameContext): TextStyle {
   const {project, timing, width, height, scene} = frame;
-  const enter = easeOutQuint(timing.entrance);
+  const enter = timing.entrance;
   const leave = easeInOutQuart(timing.exit);
   const direction = randomFor(project.seed, `${scene.id}-direction`) > 0.5 ? 1 : -1;
+  const verticalDirection = randomFor(project.seed, `${scene.id}-vertical`) > 0.5 ? 1 : -1;
   const style: TextStyle = {
     x: width / 2,
     y: height / 2,
@@ -181,29 +206,22 @@ function resolveTextStyle(frame: FrameContext): TextStyle {
     alpha: 1,
   };
 
-  if (project.recipe.entrance === 'fly') style.x += direction * width * (1 - enter) * 0.95;
+  if (project.recipe.entrance === 'fly') {
+    style.x += direction * width * (1 - enter) * 1.05;
+    style.y += verticalDirection * height * (1 - enter) * 0.2;
+    style.alpha *= 0.35 + enter * 0.65;
+  }
   if (project.recipe.entrance === 'zoom') {
-    style.scaleX *= 0.18 + enter * 0.82;
-    style.scaleY *= 0.18 + enter * 0.82;
-    style.alpha *= enter;
+    style.scaleX *= 0.22 + enter * 0.78;
+    style.scaleY *= 0.22 + enter * 0.78;
+    style.alpha *= 0.3 + enter * 0.7;
   }
 
   const phase = timing.progress * Math.PI * 4;
-  if (project.recipe.motion === 'elastic') {
-    const stretch = Math.sin(phase) * 0.12 * project.intensity * timing.motion;
-    style.scaleX *= 1 + stretch;
-    style.scaleY *= 1 - stretch * 0.72;
-  }
   if (project.recipe.motion === 'drift') {
     style.x += Math.sin(phase * 0.5) * width * 0.045 * project.intensity * timing.motion;
     style.y += Math.cos(phase * 0.42) * height * 0.035 * project.intensity * timing.motion;
     style.rotation += Math.sin(phase * 0.35) * 0.035 * project.intensity * timing.motion;
-  }
-
-  if (project.recipe.emphasis === 'pulse') {
-    const amount = timing.emphasis * project.intensity * 0.28;
-    style.scaleX *= 1 + amount;
-    style.scaleY *= 1 + amount;
   }
 
   if (project.recipe.exit === 'shrink') {
@@ -246,7 +264,7 @@ function renderScatterText(frame: FrameContext, style: TextStyle, text: string) 
   const count = Math.max(1, chars.length);
   const columns = Math.ceil(Math.sqrt(count));
   const rows = Math.ceil(count / columns);
-  const enterScatter = project.recipe.entrance === 'scatter' ? 1 - easeOutQuint(timing.entrance) : 0;
+  const enterScatter = project.recipe.entrance === 'scatter' ? 1 - timing.entrance : 0;
   const exitScatter = project.recipe.exit === 'scatter' ? easeInOutQuart(timing.exit) : 0;
   const amount = Math.max(enterScatter, exitScatter);
   chars.forEach((char, index) => {
@@ -270,7 +288,7 @@ function renderScatterText(frame: FrameContext, style: TextStyle, text: string) 
 function renderShutterText(frame: FrameContext, style: TextStyle, text: string) {
   const {ctx, project, timing, width, height} = frame;
   const bands = 8;
-  const enterOffset = project.recipe.entrance === 'shutter' ? 1 - easeOutQuint(timing.entrance) : 0;
+  const enterOffset = project.recipe.entrance === 'shutter' ? 1 - timing.entrance : 0;
   const exitOffset = project.recipe.exit === 'shutter' ? easeInOutQuart(timing.exit) : 0;
   const amount = Math.max(enterOffset, exitOffset);
   for (let index = 0; index < bands; index += 1) {
@@ -338,19 +356,139 @@ function renderTunnelText(frame: FrameContext, style: TextStyle, text: string) {
   }
 }
 
+function measuredTextWidth(frame: FrameContext, text: string, maxWidth: number, maxHeight: number) {
+  const size = fitFontSize(frame.ctx, frame.project, text, maxWidth, maxHeight);
+  frame.ctx.font = fontString(frame.project, size);
+  return {size, width: frame.ctx.measureText(text).width};
+}
+
+function continuousMotionProgress(frame: FrameContext) {
+  const totalFrames = Math.max(2, frame.project.durationSeconds * frame.project.fps);
+  const rawProgress = clamp01(frame.frame / (totalFrames - 1));
+  const speedCurve = 1 / (0.85 + frame.project.speed * 0.15);
+  return rawProgress ** speedCurve;
+}
+
+function renderSingleMarquee(frame: FrameContext, style: TextStyle) {
+  const {project, width, height} = frame;
+  const text = project.text.trim() || project.text;
+  const maxWidth = width * 1.75;
+  const maxHeight = height * 0.72;
+  const metrics = measuredTextWidth(frame, text, maxWidth, maxHeight);
+  const travel = width + metrics.width;
+  const x = width + metrics.width / 2 - continuousMotionProgress(frame) * travel;
+  drawCentered(frame, text, {
+    x,
+    y: height / 2,
+    maxWidth,
+    maxHeight,
+    scaleX: style.scaleX,
+    scaleY: style.scaleY,
+    alpha: style.alpha,
+  });
+}
+
+function renderMultiMarquee(frame: FrameContext, style: TextStyle) {
+  const {project, width, height} = frame;
+  const text = project.text.trim() || project.text;
+  const rowCount = height > width ? 8 : 6;
+  const laneHeight = height / rowCount;
+  const progress = continuousMotionProgress(frame);
+
+  for (let row = 0; row < rowCount; row += 1) {
+    const sizeFactor = 0.58 + randomFor(project.seed, `marquee-size-${row}`) * 0.6;
+    const delay = randomFor(project.seed, `marquee-delay-${row}`) * 0.2;
+    const localProgress = clamp01((progress - delay) / Math.max(0.01, 1 - delay));
+    const maxWidth = width * (1.15 + sizeFactor * 0.72);
+    const maxHeight = laneHeight * sizeFactor;
+    const metrics = measuredTextWidth(frame, text, maxWidth, maxHeight);
+    const overshoot = width * randomFor(project.seed, `marquee-gap-${row}`) * 0.18;
+    const travel = width + metrics.width + overshoot;
+    const x = width + metrics.width / 2 + overshoot - localProgress * travel;
+    drawCentered(frame, text, {
+      x,
+      y: laneHeight * (row + 0.5),
+      maxWidth,
+      maxHeight,
+      scaleX: style.scaleX,
+      scaleY: style.scaleY,
+      alpha: style.alpha * (0.72 + sizeFactor * 0.23),
+    });
+  }
+}
+
+function gridPoint(index: number, count: number, width: number, height: number) {
+  const ratio = width / height;
+  const columns = Math.max(1, Math.ceil(Math.sqrt(count * ratio)));
+  const rows = Math.ceil(count / columns);
+  const column = index % columns;
+  const row = Math.floor(index / columns);
+  return {
+    x: (column + 0.5) / columns * width,
+    y: (row + 0.5) / rows * height,
+    cellWidth: width / columns,
+    cellHeight: height / rows,
+  };
+}
+
+function renderMultiplyingTiles(frame: FrameContext, style: TextStyle) {
+  const {project, width, height} = frame;
+  const text = graphemes(project.text).filter((item) => item.trim()).slice(0, 2).join('') || project.text;
+  const progress = continuousMotionProgress(frame);
+  const activeProgress = clamp01((progress - 0.08) / 0.84);
+  const densityEnvelope = progress <= 0.08 || progress >= 0.92
+    ? 0
+    : Math.sin(activeProgress * Math.PI);
+  const counts = [1, 4, 8, 16] as const;
+  const continuousLevel = Math.min(counts.length - 1, Math.max(0, densityEnvelope * (counts.length - 1)));
+  const lowerLevel = Math.floor(continuousLevel);
+  const upperLevel = Math.min(counts.length - 1, Math.ceil(continuousLevel));
+  const lowerCount = counts[lowerLevel];
+  const upperCount = counts[upperLevel];
+  const splitProgress = easeInOutQuart(continuousLevel - lowerLevel);
+  const childrenPerParent = Math.max(1, upperCount / lowerCount);
+
+  for (let index = 0; index < upperCount; index += 1) {
+    const parent = gridPoint(Math.floor(index / childrenPerParent), lowerCount, width, height);
+    const child = gridPoint(index, upperCount, width, height);
+    const x = parent.x + (child.x - parent.x) * splitProgress;
+    const y = parent.y + (child.y - parent.y) * splitProgress;
+    const cellWidth = parent.cellWidth + (child.cellWidth - parent.cellWidth) * splitProgress;
+    const cellHeight = parent.cellHeight + (child.cellHeight - parent.cellHeight) * splitProgress;
+    drawCentered(frame, text, {
+      x,
+      y,
+      maxWidth: cellWidth * 0.82,
+      maxHeight: cellHeight * 0.68,
+      scaleX: style.scaleX,
+      scaleY: style.scaleY,
+      alpha: style.alpha,
+    });
+  }
+}
+
 function renderForeground(frame: FrameContext) {
   const {project, scene, timing, width, height} = frame;
   const style = resolveTextStyle(frame);
   const allCharacters = graphemes(scene.text);
+  const typingProgress = timing.entrance;
   const visibleCount = project.recipe.entrance === 'typewriter'
-    ? Math.ceil(allCharacters.length * easeOutQuint(timing.entrance))
+    ? Math.floor(allCharacters.length * typingProgress)
     : allCharacters.length;
   const text = allCharacters.slice(0, visibleCount).join('');
-  const displayText = project.recipe.entrance === 'typewriter' && timing.entrance < 1
-    ? `${text}${Math.floor(timing.progress * 16) % 2 === 0 ? '▌' : ' '}`
+  const showCursor = project.recipe.entrance === 'typewriter' && timing.progress < 0.82;
+  const cursorVisible = Math.floor(frame.frame / Math.max(2, project.fps * 0.22)) % 2 === 0;
+  const displayText = showCursor
+    ? `${text}${cursorVisible ? '▌' : ' '}`
     : text;
 
-  if (project.recipe.emphasis === 'glitch' && timing.emphasis > 0.04) {
+  if (project.recipe.motion === 'marquee') {
+    renderSingleMarquee(frame, style);
+  } else if (project.recipe.motion === 'marquee-lines') {
+    renderMultiMarquee(frame, style);
+  } else if (project.recipe.motion === 'multiply') {
+    renderMultiplyingTiles(frame, style);
+  } else if (project.recipe.emphasis === 'glitch' && timing.emphasis > 0.04) {
     renderGlitchText(frame, style, displayText);
   } else if (
     (project.recipe.entrance === 'shutter' && timing.entrance < 1)

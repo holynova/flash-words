@@ -37,7 +37,7 @@ const FONT_OPTIONS: Array<{id: ProjectSpec['fontId']; name: string}> = [
 ];
 
 export function App() {
-  const {project, setProject, updateProject, randomize, reset} = useProject();
+  const {project, setProject, updateProject, setCompositionMode, randomize, reset} = useProject();
   const [playing, setPlaying] = useState(() => !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
   const [restartToken, setRestartToken] = useState(0);
   const [currentFrame, setCurrentFrame] = useState(0);
@@ -62,7 +62,19 @@ export function App() {
   }, []);
 
   const setTemplate = (templateId: ProjectSpec['templateId']) => {
-    updateProject({templateId, autoDirector: true});
+    updateProject({templateId, autoDirector: project.compositionMode === 'combined'});
+    restart();
+  };
+
+  const changeCompositionMode = (mode: ProjectSpec['compositionMode']) => {
+    if (mode === project.compositionMode) return;
+    setCompositionMode(mode);
+    restart();
+  };
+
+  const changeSegmentationMode = (mode: ProjectSpec['segmentationMode']) => {
+    if (mode === project.segmentationMode) return;
+    updateProject({segmentationMode: mode});
     restart();
   };
 
@@ -187,7 +199,7 @@ export function App() {
           <section className="rail-section">
             <div className="section-heading inline-heading">
               <span className="section-index">02</span>
-              <h2>选择组合预设</h2>
+              <h2>选择动效预设</h2>
               <button
                 className={`icon-lock ${project.locks.template ? 'is-locked' : ''}`}
                 type="button"
@@ -215,12 +227,14 @@ export function App() {
             </div>
             <RecipeComposer
               recipe={project.recipe}
+              compositionMode={project.compositionMode}
               autoDirector={project.autoDirector}
+              onModeChange={changeCompositionMode}
               onToggleAuto={toggleAutoDirector}
               onChange={setRecipeEffect}
             />
             {project.recipe.emphasis === 'flash' && (
-              <p className="motion-warning">此模板包含快速闪烁，光敏用户请谨慎使用。</p>
+              <p className="motion-warning">闪动已采用低频柔和模式，强度滑杆可继续降低亮度变化。</p>
             )}
           </section>
 
@@ -245,6 +259,31 @@ export function App() {
               <button type="button" className={project.aspectRatio === '9:16' ? 'is-active' : ''} onClick={() => updateProject({aspectRatio: '9:16'})}>
                 <Smartphone size={15} aria-hidden="true" /> 9:16
               </button>
+            </div>
+
+            <div className="segmentation-control">
+              <div className="control-label">
+                <span>文字切分</span>
+                <small>{project.segmentationMode === 'character' ? '每个字单独出现' : '按词组依次出现'}</small>
+              </div>
+              <div className="segmented" role="group" aria-label="文字切分">
+                <button
+                  type="button"
+                  className={project.segmentationMode === 'character' ? 'is-active' : ''}
+                  aria-pressed={project.segmentationMode === 'character'}
+                  onClick={() => changeSegmentationMode('character')}
+                >
+                  逐字
+                </button>
+                <button
+                  type="button"
+                  className={project.segmentationMode === 'word' ? 'is-active' : ''}
+                  aria-pressed={project.segmentationMode === 'word'}
+                  onClick={() => changeSegmentationMode('word')}
+                >
+                  按词
+                </button>
+              </div>
             </div>
 
             <label className="range-field">
@@ -292,8 +331,12 @@ export function App() {
           <div className="stage-header">
             <div>
               <span className="eyebrow">LIVE COMPOSITION</span>
-              <h2>{project.autoDirector ? activeTemplate.name : '自定义组合'}</h2>
-              <p className="stage-recipe">{recipeSummary(project.recipe)}</p>
+              <h2>
+                {project.compositionMode === 'single'
+                  ? `${activeTemplate.name} · 单效`
+                  : project.autoDirector ? activeTemplate.name : '自定义组合'}
+              </h2>
+              <p className="stage-recipe">{recipeSummary(project.recipe, project.compositionMode)}</p>
             </div>
             <div className="stage-seed">SEED <span>{String(project.seed).padStart(8, '0').slice(-8)}</span></div>
           </div>
@@ -378,7 +421,7 @@ export function App() {
         <h2>隐私</h2><p>Flash Words 不上传输入文字、项目文件或导出内容。浏览器仅在本地保存最近一次项目。</p>
       </section>
       <section className="legal-strip" id="terms">
-        <h2>使用说明</h2><p>快速闪烁可能不适合光敏用户。导出能力取决于浏览器的视频编码支持，无法生成 MP4 时会自动尝试 WebM。</p>
+        <h2>使用说明</h2><p>闪动效果默认限制为低频和低对比度。导出能力取决于浏览器的视频编码支持，无法生成 MP4 时会自动尝试 WebM。</p>
       </section>
     </div>
   );

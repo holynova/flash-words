@@ -10,15 +10,28 @@ export const TEMPLATE_IDS = [
   'wave-flow',
   'typewriter',
   'shutter-reveal',
+  'single-marquee',
+  'multi-marquee',
+  'split-tiles',
 ] as const;
 
 export type TemplateId = (typeof TEMPLATE_IDS)[number];
 export type AspectRatio = '1:1' | '9:16';
 export type FontId = 'noto-sans' | 'noto-serif' | 'archivo-black';
+export type CompositionMode = 'combined' | 'single';
+export type TextSegmentationMode = 'character' | 'word';
 
 export const ENTRANCE_EFFECT_IDS = ['fly', 'typewriter', 'scatter', 'shutter', 'zoom', 'none'] as const;
-export const MOTION_EFFECT_IDS = ['wave', 'elastic', 'drift', 'tunnel', 'still'] as const;
-export const EMPHASIS_EFFECT_IDS = ['pulse', 'flash', 'glitch', 'invert', 'none'] as const;
+export const MOTION_EFFECT_IDS = [
+  'wave',
+  'drift',
+  'tunnel',
+  'marquee',
+  'marquee-lines',
+  'multiply',
+  'still',
+] as const;
+export const EMPHASIS_EFFECT_IDS = ['flash', 'glitch', 'invert', 'none'] as const;
 export const EXIT_EFFECT_IDS = ['shrink', 'shutter', 'scatter', 'fly', 'fade', 'none'] as const;
 export const BACKGROUND_EFFECT_IDS = ['none', 'tiles', 'grid', 'tunnel', 'scanlines'] as const;
 
@@ -43,7 +56,7 @@ export interface ProjectLocks {
 }
 
 export interface ProjectSpec {
-  version: 2;
+  version: 4;
   text: string;
   aspectRatio: AspectRatio;
   durationSeconds: number;
@@ -55,6 +68,8 @@ export interface ProjectSpec {
   fontId: FontId;
   foreground: string;
   background: string;
+  segmentationMode: TextSegmentationMode;
+  compositionMode: CompositionMode;
   autoDirector: boolean;
   recipe: MotionRecipe;
   locks: ProjectLocks;

@@ -1,8 +1,8 @@
 import {useCallback, useEffect, useState} from 'react';
 import {DEFAULT_PROJECT, normalizeProject} from '../engine/project';
-import {directRecipe, randomRecipe} from '../engine/recipes';
+import {directRecipe, randomRecipe, singleRecipe} from '../engine/recipes';
 import {nextSeed} from '../engine/random';
-import {TEMPLATE_IDS, type ProjectSpec} from '../engine/types';
+import {TEMPLATE_IDS, type CompositionMode, type ProjectSpec} from '../engine/types';
 
 const STORAGE_KEY = 'flash-words/project-v1';
 const PALETTES = [
@@ -37,13 +37,25 @@ export function useProject() {
   const updateProject = useCallback((patch: Partial<ProjectSpec>) => {
     setProject((current) => {
       const merged = normalizeProject({...current, ...patch});
-      const shouldDirect = merged.autoDirector
+      const shouldDirect = merged.compositionMode === 'combined'
+        && merged.autoDirector
         && !patch.recipe
         && (patch.text !== undefined || patch.templateId !== undefined || patch.autoDirector === true);
       return shouldDirect
         ? normalizeProject({...merged, recipe: directRecipe(merged.templateId, merged.text, merged.seed)})
         : merged;
     });
+  }, []);
+
+  const setCompositionMode = useCallback((compositionMode: CompositionMode) => {
+    setProject((current) => normalizeProject({
+      ...current,
+      compositionMode,
+      autoDirector: compositionMode === 'combined',
+      recipe: compositionMode === 'single'
+        ? singleRecipe(current.templateId)
+        : directRecipe(current.templateId, current.text, current.seed),
+    }));
   }, []);
 
   const randomize = useCallback(() => {
@@ -55,11 +67,13 @@ export function useProject() {
       const palette = current.locks.palette
         ? {foreground: current.foreground, background: current.background}
         : PALETTES[(seed >>> 4) % PALETTES.length];
-      const recipe = current.locks.template
-        ? current.recipe
-        : current.autoDirector
-          ? directRecipe(templateId, current.text, seed)
-          : randomRecipe(seed);
+      const recipe = current.compositionMode === 'single'
+        ? singleRecipe(templateId)
+        : current.locks.template
+          ? current.recipe
+          : current.autoDirector
+            ? directRecipe(templateId, current.text, seed)
+            : randomRecipe(seed);
       return normalizeProject({
         ...current,
         ...palette,
@@ -72,5 +86,5 @@ export function useProject() {
 
   const reset = useCallback(() => setProject(structuredClone(DEFAULT_PROJECT)), []);
 
-  return {project, setProject, updateProject, randomize, reset};
+  return {project, setProject, updateProject, setCompositionMode, randomize, reset};
 }

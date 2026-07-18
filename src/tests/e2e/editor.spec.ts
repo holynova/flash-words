@@ -19,6 +19,16 @@ test('persists the project locally', async ({page}) => {
   await expect(page.getByLabel('动画文字')).toHaveValue('保存在本地');
 });
 
+test('switches between word and character output and persists the choice', async ({page}) => {
+  await page.goto('/');
+  await expect(page.getByRole('button', {name: '按词'})).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', {name: '逐字'}).click();
+  await expect(page.getByRole('button', {name: '逐字'})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByText('每个字单独出现')).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole('button', {name: '逐字'})).toHaveAttribute('aria-pressed', 'true');
+});
+
 test('supports a narrow mobile viewport without horizontal overflow', async ({page}, testInfo) => {
   test.skip(!testInfo.project.name.includes('mobile'), 'Mobile-only layout assertion');
   await page.goto('/');
@@ -44,10 +54,25 @@ test('shows an inline error for an empty draft', async ({page}) => {
   await expect(page.getByRole('button', {name: '导出视频'})).toBeDisabled();
 });
 
-test('renders all eleven templates at both aspect ratios', async ({page}) => {
+test('renders all fourteen templates at both aspect ratios', async ({page}) => {
   test.setTimeout(60_000);
   await page.goto('/');
-  const templates = ['黑白跳切', '飞入网格', '弹性文字', '无限推进', '闪烁反相', '密集平铺', '故障切片', '散落聚合', '波浪字流', '打字显现', '快门揭示'];
+  const templates = [
+    '黑白跳切',
+    '飞入网格',
+    '平滑缩放',
+    '无限推进',
+    '闪烁反相',
+    '密集平铺',
+    '故障切片',
+    '散落聚合',
+    '波浪字流',
+    '打字显现',
+    '快门揭示',
+    '单行弹幕',
+    '多行弹幕',
+    '倍增平铺',
+  ];
   for (const ratio of ['1:1', '9:16']) {
     await page.getByRole('button', {name: ratio}).click();
     for (const name of templates) {
@@ -103,6 +128,23 @@ test('combines five effect slots and persists a manual recipe', async ({page}) =
   await page.reload();
   await expect(page.getByLabel('进入效果')).toHaveValue('typewriter');
   await expect(page.getByLabel('背景效果')).toHaveValue('tiles');
+});
+
+test('switches from the default combined recipe to one single effect and persists it', async ({page}) => {
+  await page.goto('/');
+  await expect(page.getByRole('button', {name: '组合配方'})).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', {name: '单一特效'}).click();
+  await expect(page.getByRole('button', {name: '单一特效'})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.recipe-slot')).toHaveCount(0);
+  await expect(page.locator('.single-effect-summary strong')).toHaveText('闪烁');
+
+  await page.getByRole('button', {name: '飞入网格'}).click();
+  await expect(page.locator('.single-effect-summary strong')).toHaveText('飞入');
+  await expect(page.getByRole('heading', {name: '飞入网格 · 单效'})).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole('button', {name: '单一特效'})).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.single-effect-summary strong')).toHaveText('飞入');
 });
 
 test('auto director adapts the recipe to text length and presets restore it', async ({page}) => {

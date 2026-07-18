@@ -4,6 +4,7 @@ import {
   ENTRANCE_EFFECT_IDS,
   EXIT_EFFECT_IDS,
   MOTION_EFFECT_IDS,
+  type CompositionMode,
   type MotionRecipe,
 } from '../engine/types';
 
@@ -15,11 +16,12 @@ const EFFECT_NAMES: Record<string, string> = {
   zoom: '缩放',
   none: '无',
   wave: '波浪',
-  elastic: '弹性',
   drift: '漂移',
   tunnel: '隧道',
+  marquee: '单行弹幕',
+  'marquee-lines': '多行弹幕',
+  multiply: '倍增平铺',
   still: '静止',
-  pulse: '脉冲',
   flash: '闪烁',
   glitch: '故障',
   invert: '反相',
@@ -47,6 +49,15 @@ export function effectName(effect: string) {
   return EFFECT_NAMES[effect] ?? effect;
 }
 
-export function recipeSummary(recipe: MotionRecipe) {
+export function primaryEffectName(recipe: MotionRecipe) {
+  const field = RECIPE_FIELDS.find(({key}) => {
+    const effect = recipe[key];
+    return effect !== 'none' && !(key === 'motion' && effect === 'still');
+  });
+  return field ? effectName(recipe[field.key]) : '静止';
+}
+
+export function recipeSummary(recipe: MotionRecipe, compositionMode: CompositionMode = 'combined') {
+  if (compositionMode === 'single') return primaryEffectName(recipe);
   return RECIPE_FIELDS.map((field) => effectName(recipe[field.key])).join(' · ');
 }

@@ -20,15 +20,38 @@ describe('auto director timeline', () => {
     expect(sceneAtFrame(timeline, timeline.totalFrames).id).toBe(timeline.scenes[0].id);
   });
 
-  it('chunks long multilingual copy without dropping content', () => {
+  it('switches between word and character output without dropping content', () => {
     const text = '动态文字让每一个关键词拥有自己的节奏 Motion belongs to every word';
-    const timeline = createTimeline({...DEFAULT_PROJECT, text});
-    const focusText = timeline.scenes
+    const wordTimeline = createTimeline({...DEFAULT_PROJECT, text, segmentationMode: 'word'});
+    const characterTimeline = createTimeline({...DEFAULT_PROJECT, text, segmentationMode: 'character'});
+    const wordScenes = wordTimeline.scenes.filter((scene) => scene.kind === 'focus' || scene.kind === 'phrase');
+    const characterScenes = characterTimeline.scenes.filter(
+      (scene) => scene.kind === 'focus' || scene.kind === 'phrase',
+    );
+    const focusText = characterScenes
       .filter((scene) => scene.kind === 'focus' || scene.kind === 'phrase')
       .map((scene) => scene.text)
       .join('')
       .replace(/\s+/gu, '');
     expect(focusText).toBe(text.replace(/\s+/gu, ''));
-    expect(timeline.scenes.length).toBeLessThanOrEqual(12);
+    expect(characterScenes.every((scene) => [...scene.text].length === 1)).toBe(true);
+    expect(wordScenes.length).toBeLessThan(characterScenes.length);
   });
+
+  it.each(['marquee', 'marquee-lines', 'multiply'] as const)(
+    'keeps %s motion continuous across the full video',
+    (motion) => {
+      const project = {
+        ...DEFAULT_PROJECT,
+        recipe: {...DEFAULT_PROJECT.recipe, motion},
+      };
+      const timeline = createTimeline(project);
+      expect(timeline.scenes).toHaveLength(1);
+      expect(timeline.scenes[0]).toMatchObject({
+        text: DEFAULT_PROJECT.text,
+        startFrame: 0,
+        endFrame: timeline.totalFrames,
+      });
+    },
+  );
 });

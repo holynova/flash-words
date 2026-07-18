@@ -15,17 +15,17 @@ function windowProgress(value: number, start: number, end: number) {
 
 export function compositionTiming(value: number): CompositionTiming {
   const progress = clamp01(value);
-  const motionPhase = windowProgress(progress, 0.18, 0.78);
-  const emphasisPhase = windowProgress(progress, 0.58, 0.78);
-  const emphasis = progress <= 0.58 || progress >= 0.78
+  const motionPhase = windowProgress(progress, 0.24, 0.8);
+  const emphasisPhase = windowProgress(progress, 0.56, 0.76);
+  const emphasis = progress <= 0.56 || progress >= 0.76
     ? 0
     : Math.sin(emphasisPhase * Math.PI);
   return {
     progress,
-    entrance: windowProgress(progress, 0, 0.22),
-    motion: progress <= 0.18 || progress >= 0.78 ? 0 : Math.sin(motionPhase * Math.PI),
+    entrance: windowProgress(progress, 0, 0.68),
+    motion: progress <= 0.24 || progress >= 0.8 ? 0 : Math.sin(motionPhase * Math.PI),
     emphasis,
     emphasisPhase,
-    exit: windowProgress(progress, 0.8, 1),
+    exit: windowProgress(progress, 0.78, 1),
   };
 }

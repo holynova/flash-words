@@ -15,18 +15,50 @@ import {
 } from './types';
 
 export const RECIPE_PRESETS: Record<TemplateId, MotionRecipe> = {
-  'bold-cuts': {entrance: 'fly', motion: 'elastic', emphasis: 'flash', exit: 'shutter', background: 'tiles'},
-  'fly-grid': {entrance: 'fly', motion: 'drift', emphasis: 'pulse', exit: 'fly', background: 'grid'},
-  'elastic-type': {entrance: 'zoom', motion: 'elastic', emphasis: 'pulse', exit: 'shrink', background: 'none'},
+  'bold-cuts': {entrance: 'fly', motion: 'still', emphasis: 'flash', exit: 'shutter', background: 'tiles'},
+  'fly-grid': {entrance: 'fly', motion: 'drift', emphasis: 'none', exit: 'fly', background: 'grid'},
+  'elastic-type': {entrance: 'zoom', motion: 'still', emphasis: 'none', exit: 'shrink', background: 'none'},
   'tunnel-zoom': {entrance: 'zoom', motion: 'tunnel', emphasis: 'flash', exit: 'shrink', background: 'tunnel'},
   'flash-invert': {entrance: 'shutter', motion: 'still', emphasis: 'flash', exit: 'fade', background: 'scanlines'},
-  'tile-storm': {entrance: 'fly', motion: 'wave', emphasis: 'pulse', exit: 'shutter', background: 'tiles'},
+  'tile-storm': {entrance: 'fly', motion: 'wave', emphasis: 'none', exit: 'shutter', background: 'tiles'},
   'glitch-slice': {entrance: 'typewriter', motion: 'drift', emphasis: 'glitch', exit: 'fade', background: 'scanlines'},
-  'scatter-assemble': {entrance: 'scatter', motion: 'wave', emphasis: 'pulse', exit: 'scatter', background: 'none'},
+  'scatter-assemble': {entrance: 'scatter', motion: 'wave', emphasis: 'none', exit: 'scatter', background: 'none'},
   'wave-flow': {entrance: 'fly', motion: 'wave', emphasis: 'invert', exit: 'fade', background: 'grid'},
   typewriter: {entrance: 'typewriter', motion: 'still', emphasis: 'glitch', exit: 'fade', background: 'scanlines'},
-  'shutter-reveal': {entrance: 'shutter', motion: 'elastic', emphasis: 'invert', exit: 'shutter', background: 'grid'},
+  'shutter-reveal': {entrance: 'shutter', motion: 'still', emphasis: 'invert', exit: 'shutter', background: 'grid'},
+  'single-marquee': {entrance: 'none', motion: 'marquee', emphasis: 'none', exit: 'fade', background: 'grid'},
+  'multi-marquee': {entrance: 'none', motion: 'marquee-lines', emphasis: 'none', exit: 'fade', background: 'scanlines'},
+  'split-tiles': {entrance: 'zoom', motion: 'multiply', emphasis: 'none', exit: 'shrink', background: 'none'},
 };
+
+const NEUTRAL_RECIPE: MotionRecipe = {
+  entrance: 'none',
+  motion: 'still',
+  emphasis: 'none',
+  exit: 'none',
+  background: 'none',
+};
+
+export const SINGLE_EFFECT_PRESETS: Record<TemplateId, MotionRecipe> = {
+  'bold-cuts': {...NEUTRAL_RECIPE, emphasis: 'flash'},
+  'fly-grid': {...NEUTRAL_RECIPE, entrance: 'fly'},
+  'elastic-type': {...NEUTRAL_RECIPE, entrance: 'zoom'},
+  'tunnel-zoom': {...NEUTRAL_RECIPE, motion: 'tunnel'},
+  'flash-invert': {...NEUTRAL_RECIPE, emphasis: 'invert'},
+  'tile-storm': {...NEUTRAL_RECIPE, background: 'tiles'},
+  'glitch-slice': {...NEUTRAL_RECIPE, emphasis: 'glitch'},
+  'scatter-assemble': {...NEUTRAL_RECIPE, entrance: 'scatter'},
+  'wave-flow': {...NEUTRAL_RECIPE, motion: 'wave'},
+  typewriter: {...NEUTRAL_RECIPE, entrance: 'typewriter'},
+  'shutter-reveal': {...NEUTRAL_RECIPE, entrance: 'shutter'},
+  'single-marquee': {...NEUTRAL_RECIPE, motion: 'marquee'},
+  'multi-marquee': {...NEUTRAL_RECIPE, motion: 'marquee-lines'},
+  'split-tiles': {...NEUTRAL_RECIPE, motion: 'multiply'},
+};
+
+export function singleRecipe(templateId: TemplateId): MotionRecipe {
+  return {...SINGLE_EFFECT_PRESETS[templateId]};
+}
 
 function isOneOf<T extends string>(value: unknown, values: readonly T[]): value is T {
   return typeof value === 'string' && values.includes(value as T);
@@ -49,7 +81,7 @@ export function directRecipe(templateId: TemplateId, text: string, seed: number)
   const count = visibleCharacterCount(text);
   if (count <= 4) {
     recipe.exit = 'shrink';
-    if (recipe.emphasis === 'none') recipe.emphasis = seed % 2 === 0 ? 'pulse' : 'flash';
+    if (recipe.emphasis === 'none') recipe.emphasis = seed % 2 === 0 ? 'flash' : 'glitch';
   } else if (count >= 12) {
     recipe.entrance = seed % 2 === 0 ? 'typewriter' : 'scatter';
     recipe.motion = seed % 3 === 0 ? 'drift' : 'wave';

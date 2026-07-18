@@ -10,10 +10,8 @@ export function easeInOutQuart(value: number) {
   return t < 0.5 ? 8 * t ** 4 : 1 - Math.pow(-2 * t + 2, 4) / 2;
 }
 
-export function pulse(value: number) {
-  return Math.sin(clamp01(value) * Math.PI);
-}
-
 export function tempoProgress(value: number, speed: number) {
-  return Math.pow(clamp01(value), 1 / Math.max(0.01, speed));
+  const boundedSpeed = Math.min(2, Math.max(0.5, speed));
+  const exponent = 1 / (0.8 + boundedSpeed * 0.2);
+  return Math.pow(clamp01(value), exponent);
 }
