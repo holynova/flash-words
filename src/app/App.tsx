@@ -3,6 +3,7 @@ import {
   Download,
   FileDown,
   Film,
+  GitFork,
   Image as ImageIcon,
   Lock,
   Pause,
@@ -363,8 +364,11 @@ export function App() {
       </main>
 
       <footer className="footer">
-        <span>FLASH WORDS / V1.0</span>
+        <span>FLASH WORDS / {__APP_VERSION_LABEL__}</span>
         <nav aria-label="页脚导航">
+          <a className="repo-link" href="https://github.com/holynova/flash-words" target="_blank" rel="noreferrer">
+            <GitFork size={14} aria-hidden="true" /> GitHub
+          </a>
           <a href="#privacy">隐私</a>
           <a href="#terms">使用说明</a>
         </nav>

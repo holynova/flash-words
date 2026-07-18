@@ -2,6 +2,12 @@
   "name": "flash-words",
   "private": true,
   "version": "1.0.0",
+  "description": "在浏览器本地编排并导出动态文字视频或 GIF。",
+  "homepage": "https://holynova.github.io/flash-words/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/holynova/flash-words.git"
+  },
   "type": "module",
   "engines": {
     "node": ">=24"
@@ -9,6 +15,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:pages": "tsc -b && vite build --mode pages",
     "preview": "vite preview",
     "lint": "eslint .",
     "typecheck": "tsc -b --pretty false",

@@ -608,6 +608,7 @@ input[type="range"] {
 
 .footer nav { display: flex; gap: 18px; }
 .footer a { min-height: 40px; display: inline-flex; align-items: center; }
+.footer .repo-link { gap: 5px; }
 
 .legal-strip {
   min-height: 84px;
