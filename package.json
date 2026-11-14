@@ -1,7 +1,7 @@
 {
   "name": "flash-words",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "在浏览器本地编排并导出动态文字视频或 GIF。",
   "homepage": "https://holynova.github.io/flash-words/",
   "repository": {

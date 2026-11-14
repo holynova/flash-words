@@ -25,7 +25,6 @@ export function RecipeComposer({
     <div className="recipe-composer">
       <div className="recipe-heading">
         <div>
-          <span>MODE</span>
           <h3>动效模式</h3>
         </div>
         {isCombined && (
@@ -80,7 +79,7 @@ export function RecipeComposer({
           </div>
 
           <p className="recipe-note">
-            {autoDirector ? '根据文字长度和当前预设自动安排，修改任一槽位即进入手动编排。' : '五个槽位独立组合，换一版会生成新的组合。'}
+            {autoDirector ? '根据文字长度和当前预设自动安排，修改任一效果即进入手动编排。' : '五个效果独立组合，换一版会生成新的组合。'}
           </p>
         </>
       ) : (

@@ -70,7 +70,7 @@ export function CanvasPreview({project, playing, restartToken, onFrameChange}: C
 
   return (
     <div className={`preview-wrap preview-${project.aspectRatio.replace(':', 'x')}`} data-ready={ready}>
-      {!ready && <div className="preview-pending">正在装载字体</div>}
+      {!ready && <div className="preview-pending">正在加载字体</div>}
       <canvas
         ref={canvasRef}
         className="preview-canvas"

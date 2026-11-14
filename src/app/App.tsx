@@ -221,7 +221,7 @@ export function App() {
                   title={template.description}
                 >
                   <span className="template-glyph" aria-hidden="true">{template.glyph}</span>
-                  <span>{template.shortName}</span>
+                  <span>{template.name}</span>
                 </button>
               ))}
             </div>
@@ -234,7 +234,7 @@ export function App() {
               onChange={setRecipeEffect}
             />
             {project.recipe.emphasis === 'flash' && (
-              <p className="motion-warning">闪动已采用低频柔和模式，强度滑杆可继续降低亮度变化。</p>
+              <p className="motion-warning">闪动已采用低频柔和模式，强度滑块可继续降低亮度变化。</p>
             )}
           </section>
 
@@ -330,15 +330,15 @@ export function App() {
         <section className="stage-column" aria-label="动画预览">
           <div className="stage-header">
             <div>
-              <span className="eyebrow">LIVE COMPOSITION</span>
+              <span className="eyebrow">实时编排</span>
               <h2>
                 {project.compositionMode === 'single'
-                  ? `${activeTemplate.name} · 单效`
+                  ? `${activeTemplate.name}（单效）`
                   : project.autoDirector ? activeTemplate.name : '自定义组合'}
               </h2>
               <p className="stage-recipe">{recipeSummary(project.recipe, project.compositionMode)}</p>
             </div>
-            <div className="stage-seed">SEED <span>{String(project.seed).padStart(8, '0').slice(-8)}</span></div>
+            <div className="stage-seed">随机种子 <span>{String(project.seed).padStart(8, '0').slice(-8)}</span></div>
           </div>
 
           <div className="stage-surface">
@@ -365,8 +365,8 @@ export function App() {
           </section>
 
           <div className="export-specs">
-            <div><span>VIDEO</span><strong>1080P</strong><small>30 FPS · MP4 / WebM</small></div>
-            <div><span>GIF</span><strong>720P</strong><small>15 FPS · 无限循环</small></div>
+            <div><span>VIDEO</span><strong>1080P</strong><small>30 FPS，MP4 / WebM</small></div>
+            <div><span>GIF</span><strong>720P</strong><small>15 FPS，无限循环</small></div>
           </div>
 
           <div className="export-actions">
@@ -397,7 +397,7 @@ export function App() {
             <div>
               <button type="button" onClick={exportProjectFile}><FileDown size={15} aria-hidden="true" /> 保存</button>
               <button type="button" onClick={() => importRef.current?.click()}><Upload size={15} aria-hidden="true" /> 载入</button>
-              <button type="button" onClick={() => { reset(); restart(); setNotice('已恢复示例项目'); }}><RotateCcw size={15} aria-hidden="true" /> 重置</button>
+              <button type="button" onClick={() => { if (!window.confirm('确定要重置吗？当前项目将被示例项目替换。')) return; reset(); restart(); setNotice('已恢复示例项目'); }}><RotateCcw size={15} aria-hidden="true" /> 重置</button>
             </div>
             <input ref={importRef} type="file" accept="application/json,.json" hidden onChange={(event) => importProjectFile(event.target.files?.[0])} />
           </section>

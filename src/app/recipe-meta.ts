@@ -38,11 +38,11 @@ export const RECIPE_FIELDS: Array<{
   index: string;
   options: readonly string[];
 }> = [
-  {key: 'entrance', label: '进入', index: 'IN', options: ENTRANCE_EFFECT_IDS},
-  {key: 'motion', label: '持续', index: 'MOVE', options: MOTION_EFFECT_IDS},
-  {key: 'emphasis', label: '强调', index: 'HIT', options: EMPHASIS_EFFECT_IDS},
-  {key: 'exit', label: '退出', index: 'OUT', options: EXIT_EFFECT_IDS},
-  {key: 'background', label: '背景', index: 'BG', options: BACKGROUND_EFFECT_IDS},
+  {key: 'entrance', label: '进入', index: '入', options: ENTRANCE_EFFECT_IDS},
+  {key: 'motion', label: '持续', index: '动', options: MOTION_EFFECT_IDS},
+  {key: 'emphasis', label: '强调', index: '强', options: EMPHASIS_EFFECT_IDS},
+  {key: 'exit', label: '退出', index: '出', options: EXIT_EFFECT_IDS},
+  {key: 'background', label: '背景', index: '景', options: BACKGROUND_EFFECT_IDS},
 ];
 
 export function effectName(effect: string) {
@@ -59,5 +59,5 @@ export function primaryEffectName(recipe: MotionRecipe) {
 
 export function recipeSummary(recipe: MotionRecipe, compositionMode: CompositionMode = 'combined') {
   if (compositionMode === 'single') return primaryEffectName(recipe);
-  return RECIPE_FIELDS.map((field) => effectName(recipe[field.key])).join(' · ');
+  return RECIPE_FIELDS.map((field) => effectName(recipe[field.key])).join('、');
 }
