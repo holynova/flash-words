@@ -18,7 +18,7 @@ export async function detectVideoCapability(width = 1080, height = 1080): Promis
       mp4.getSupportedVideoCodecs().filter((item) => item === 'avc' || item === 'hevc'),
       {width, height},
     );
-    if (codec) return {container: 'mp4', codec, label: codec === 'avc' ? 'MP4 · H.264' : 'MP4 · HEVC'};
+    if (codec) return {container: 'mp4', codec, label: codec === 'avc' ? 'MP4 / H.264' : 'MP4 / HEVC'};
   } catch {
     // Continue to WebM capability detection.
   }
@@ -26,7 +26,7 @@ export async function detectVideoCapability(width = 1080, height = 1080): Promis
   try {
     const webm = new WebMOutputFormat();
     const codec = await getFirstEncodableVideoCodec(webm.getSupportedVideoCodecs(), {width, height});
-    if (codec) return {container: 'webm', codec, label: `WebM · ${codec.toUpperCase()}`};
+    if (codec) return {container: 'webm', codec, label: `WebM / ${codec.toUpperCase()}`};
   } catch {
     // Report the unsupported state below.
   }

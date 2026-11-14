@@ -124,7 +124,7 @@ test('combines five effect slots and persists a manual recipe', async ({page}) =
   await page.getByLabel('背景效果').selectOption('tiles');
   await expect(page.getByRole('heading', {name: '自定义组合'})).toBeVisible();
   await expect(page.getByRole('button', {name: '手动编排'})).toHaveAttribute('aria-pressed', 'false');
-  await expect(page.getByText('打字 · 波浪 · 故障 · 快门 · 平铺')).toBeVisible();
+  await expect(page.getByText('打字、波浪、故障、快门、平铺')).toBeVisible();
   await page.reload();
   await expect(page.getByLabel('进入效果')).toHaveValue('typewriter');
   await expect(page.getByLabel('背景效果')).toHaveValue('tiles');
@@ -140,7 +140,7 @@ test('switches from the default combined recipe to one single effect and persist
 
   await page.getByRole('button', {name: '飞入网格'}).click();
   await expect(page.locator('.single-effect-summary strong')).toHaveText('飞入');
-  await expect(page.getByRole('heading', {name: '飞入网格 · 单效'})).toBeVisible();
+  await expect(page.getByRole('heading', {name: '飞入网格（单效）'})).toBeVisible();
 
   await page.reload();
   await expect(page.getByRole('button', {name: '单一特效'})).toHaveAttribute('aria-pressed', 'true');

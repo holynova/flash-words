@@ -10,7 +10,7 @@ Flash Words is a high-contrast editorial motion desk. It borrows the urgency of 
 - `--paper`: `oklch(95% 0.018 96)`, application canvas.
 - `--paper-deep`: `oklch(90% 0.022 96)`, side rails and grouped controls.
 - `--signal`: `oklch(86% 0.22 125)`, primary actions and active state.
-- `--danger`: `oklch(58% 0.2 28)`, validation and export errors.
+- `--danger`: `oklch(50% 0.2 28)`, validation and export errors.
 - `--muted`: `oklch(48% 0.012 95)`, secondary copy.
 
 ## 3. Typography
@@ -18,7 +18,7 @@ Flash Words is a high-contrast editorial motion desk. It borrows the urgency of 
 - Display Latin: Archivo Black, chosen for its compressed poster weight.
 - Interface: system Latin followed by PingFang SC and Noto Sans SC.
 - Motion canvas: Noto Sans SC Variable by default, Noto Serif SC and Archivo Black as alternatives.
-- UI sizes: 12, 13, 15, 20, 28px. Display logo: 24px with -0.022em Latin tracking.
+- UI sizes: 11, 13, 16, 24px. Display logo: 24px with -0.022em Latin tracking.
 
 ## 4. Components
 
